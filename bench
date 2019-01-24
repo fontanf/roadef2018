@@ -1,0 +1,18 @@
+#!/bin/bash
+
+#bazel build --cxxopt='-std=c++14' --compilation_mode=opt -- //lib:main
+#exe="./bazel-bin/lib/main"
+
+exe="./challengeSG"
+t=$1;
+
+for i in {1..20}; do
+    echo "A${i}"
+    "${exe}" -t "${t}" -p "instances/A${i}" -o "solutions_${t}/A${i}_solution.csv"
+done
+
+for i in {1..15}; do
+    echo "B${i}"
+    "${exe}" -t "${t}" -p "instances/B${i}" -o "solutions_${t}/B${i}_solution.csv"
+done
+
