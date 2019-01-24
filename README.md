@@ -2,6 +2,8 @@
 
 A branch-and-bound algorithm for the ROADEF/EURO 2018 challenge 2D-packing problem.
 
+Authors: [Florian Fontan](https://github.com/fontanf), Luc Libralesso
+
 ## Compile
 
 ```
