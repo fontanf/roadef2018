@@ -1,4 +1,4 @@
-# ROADEF/EURO 2018 challenge
+# ROADEF/EURO 2018 challenge (J28 Final submission)
 
 A branch-and-bound algorithm for the ROADEF/EURO 2018 challenge 2D-packing problem.
 
