@@ -8,45 +8,62 @@
 
 using namespace roadef2018;
 
-Solution roadef2018::ub_astar(const Instance& ins, Info& info)
+void roadef2018::sol_astar(AStarData d)
 {
-    LOG(info, LOG_FOLD_START << " simple_astar" << std::endl);
+    LOG_FOLD_START(d.info, "simple_astar" << std::endl);
 
     auto comp = [](const Solution& s1, const Solution& s2) { return s1.waste() >= s2.waste(); };
     std::priority_queue<Solution, std::vector<Solution>, decltype(comp)> q(comp);
-    Cpt nb_nodes = 0;
+    Cpt node_number = 0;
 
-    q.push(Solution(ins));
+    q.push(Solution(d.ins));
     while (!q.empty()) {
+        node_number++;
+        LOG_FOLD_START(d.info, "node " << node_number << std::endl);
+
+        if (!d.info.check_time()) {
+            LOG_FOLD_END(d.info, "");
+            return;
+        }
+
         // Get node
         Solution sol = q.top();
         q.pop();
-        nb_nodes++;
-        LOG(info, LOG_FOLD_START << " node " << nb_nodes << std::endl);
-        LOG(info, LOG_FOLD_START << " sol" << std::endl << sol << LOG_FOLD_END << std::endl);
+        LOG_FOLD(d.info, "sol" << std::endl << sol);
 
         // if found feasible solution
         if (sol.is_complete()) {
-            LOG(info, "nb nodes " << nb_nodes << std::endl);
-            LOG(info, LOG_FOLD_END << std::endl);
-            LOG(info, LOG_FOLD_END << std::endl);
-            VER(info, "Nodes: " << nb_nodes << std::endl);
-            return algorithm_end(sol, info);
+            if (!d.sol_best.is_complete() || sol.waste() < d.sol_best.waste())
+                d.sol_best.update(sol, d.info, std::stringstream("A*"));
+            LOG(d.info, "node number " << node_number << std::endl);
+            LOG_FOLD_END(d.info, "");
+            LOG_FOLD_END(d.info, "");
+            PUT(d.info, "A*.Nodes", node_number);
+            return;
         }
 
         // explore neighbours
-        for (const Insertion& i: sol.all_valid_insertions(info)) {
-            LOG(info, i << std::endl);
+        for (const Insertion& i: sol.all_valid_insertions(d.info)) {
+            LOG(d.info, i << std::endl);
             Solution neigh_sol(sol);
-            neigh_sol.add_item(i, info);
-            LOG(info, LOG_FOLD_START << " neigh_sol" << std::endl << neigh_sol << LOG_FOLD_END << std::endl);
+            neigh_sol.add_item(i, d.info);
+            LOG_FOLD(d.info, "neigh_sol" << std::endl << neigh_sol);
 
             q.push(neigh_sol);
         }
-        LOG(info, LOG_FOLD_END << std::endl);
+        LOG_FOLD_END(d.info, "");
     }
-    LOG(info, "ERROR: NO SOLUTION FOUND after " << nb_nodes << " opened nodes" << std::endl);
-    LOG(info, LOG_FOLD_END << std::endl);
-    return Solution(ins);
+    LOG(d.info, "ERROR: NO SOLUTION FOUND after " << node_number << " opened nodes" << std::endl);
+    LOG_FOLD_END(d.info, "");
 }
 
+Solution roadef2018::sol_astar(const Instance& ins, Info info)
+{
+    Solution sol(ins);
+    sol_astar({
+            .ins           = ins,
+            .sol_best      = sol,
+            .info          = info,
+            });
+    return sol;
+}

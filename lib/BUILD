@@ -8,10 +8,9 @@ cc_library(
                 "instance.cpp",
                 "solution.cpp",
         ],
-        deps = [
-                "@benchtools//:info",
-        ],
+        deps = ["@benchtools//:info"],
         linkopts = [
+                "-pthread",
                 "-lboost_filesystem",
                 "-lboost_program_options",
         ],
@@ -23,34 +22,19 @@ cc_binary(
         name = "main",
         srcs = ["main.cpp"],
         deps = [
-                "//ub_astar:libastar",
-                "//ub_astarhistorycuts:libastarhistorycuts",
-                "//ub_dfs:libdfs",
-                "//ub_dynbab:libdynbab",
-                "//ub_beamsearch:libbeamsearch",
-                "//ub_beamstacksearch:libbeamstacksearch",
-        ],
-        copts = [
-                "-fopenmp",
-        ],
-        linkopts = [
-                "-fopenmp",
-                "-static",
+                "//ub_dfs:dfs",
+                "//ub_astar:astar",
+                "//ub_dpastar:dpastar",
+                "//ub_beamsearch:beamsearch",
+                "//ub_beamstacksearch:beamstacksearch",
+                "//ub_mbastar:mbastar",
         ],
 )
 
 cc_binary(
-        name = "test_instance",
-        srcs = ["test_instance.cpp"],
-        deps = [
-        ],
-)
-
-cc_binary(
-        name = "test_io_instance",
-        srcs = ["test_io_instance.cpp"],
-        deps = [
-        ],
+        name = "insinfo_main",
+        srcs = ["insinfo_main.cpp"],
+        deps = [":cpp"],
 )
 
 cc_test(
@@ -64,19 +48,10 @@ cc_test(
         ],
         deps = [
                 ":cpp",
-                "//ub_astar:libastar",
+                "//ub_astar:astar",
                 "@googletest//:gtest_main",
         ],
         data = ["//instances:instances"],
         timeout = "short",
-)
-
-cc_binary(
-        name = "test_main",
-        srcs = ["test_main.cpp"],
-        deps = [
-                "cpp",
-                "//ub_astar:libastar",
-        ],
 )
 

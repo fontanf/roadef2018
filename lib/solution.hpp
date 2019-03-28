@@ -2,17 +2,14 @@
 
 #include "roadef2018/lib/instance.hpp"
 
-#include <memory>
+#include <sstream>
 
 namespace roadef2018
 {
 
-inline float abs(float a) { return a<0?-a:a; }
-
-
 /******************************** SolutionNode ********************************/
 
-typedef int_fast64_t SolutionNodeId;
+typedef int16_t SolutionNodeId;
 
 /**
  * Note: shortcuts
@@ -42,12 +39,12 @@ typedef int_fast64_t SolutionNodeId;
  * *  3: 3-cut
  * *  4: 4-cut
  */
-typedef int_fast64_t Depth;
+typedef int16_t Depth;
 
 struct SolutionNode
 {
     SolutionNodeId f; // father for 2-cuts and 3-cuts, -plate-1 for 1-cuts
-    Length p;         // x      for 1-cuts and 3-cuts, y for 2-cuts
+    Length p;         // x      for 1-cuts and 3-cuts, y        for 2-cuts
 
     bool operator==(const SolutionNode& node) const;
     bool operator!=(const SolutionNode& node) const { return !(*this == node); }
@@ -104,12 +101,12 @@ struct EnhancedSolutionNode
     Length l, r, b, t;
     std::vector<SolutionNodeId> children; 
     ItemId j;
-    Orientation o;
+    bool rotate;
 };
 
-std::ostream& operator<<(std::ostream &os, const std::vector<EnhancedSolutionNode>& res);
+std::ostream& operator<<(std::ostream &os, const EnhancedSolutionNode& n);
 
-/********************************** Solution **********************************/
+/********************************** CutInfo ***********************************/
 
 struct CutInfo
 {
@@ -123,6 +120,8 @@ struct CutInfo
 
 std::ostream& operator<<(std::ostream &os, const CutInfo& ins);
 
+/*********************************** Front ************************************/
+
 struct Front
 {
     PlateId p;
@@ -133,20 +132,14 @@ struct Front
 
 std::ostream& operator<<(std::ostream &os, const Front& front);
 
-struct ItemOrientationX
+/********************************** Solution **********************************/
+
+struct ItemRotateX
 {
     ItemId j;
-    Orientation o;
+    bool rotate;
     Length x;
 };
-
-struct SolutionFeatures
-{
-    float diff_percentage_means;
-    float percentage_items;
-    float waste_percentage;
-};
-
 
 class Solution
 {
@@ -156,50 +149,41 @@ public:
     Solution(const Instance& ins);
     Solution(const Solution& solution);
     Solution& operator=(const Solution& solution);
+    Solution& assign(const Solution& solution, const std::vector<ItemId>& id);
 
     bool operator==(const std::vector<SolutionNode>& nodes);
 
     inline const Instance& instance() const { return instance_; }
 
     inline ItemId  item_number()            const { return items_.size(); }
-    inline Area    item_area()              const { return item_area_; }
-    inline Area    waste()                  const { return waste_; }
-    inline Area    area()                   const { return current_area_; }
-    inline Length  width()                  const { return width_; }
-    inline double  waste_percentage()       const { return (double)waste_ / (double)instance().item_surface(); }
+    inline double  item_percentage()        const { return (double)item_number() / instance().item_number(); }
+
     inline PlateId plate_number()           const { return plate_number_; }
-    inline float   mean_area()              const { return (float)item_area()/item_number(); }
-    inline float   remaining_area()         const { return instance_.item_surface()-item_area(); }
-    inline float   mean_remaining_area()    const { return (float)remaining_area()/(instance_.item_number()-item_number()); }
-    inline float   diff_percentage_means()  const { return abs((float)mean_area()/mean_remaining_area()); }
-    inline float   percentage_items()       const { return (float)item_number()/instance_.item_number(); }
+    inline double  plate_double()           const { return (double)width() / instance().global_param().platesize.w; }
+
+    inline Area    waste()                  const { return waste_; }
+    inline double  waste_percentage()       const { return (double)waste() / area(); }
+    inline double  waste_ratio()            const { return (double)waste() / item_area(); }
+    inline Area    area()                   const { return current_area_; }
+    inline double  mean_area()              const { return (double)area() / item_number(); }
+    inline double  mean_item_area()         const { return (double)item_area() / item_number(); }
+    inline double  mean_remaining_area()    const { return (double)remaining_area() / (instance().item_number() - item_number()); }
+    inline double  remaining_area()         const { return instance().item_area() - item_area(); }
+    inline Area    item_area()              const { return item_area_; }
+
+    inline Length  width()                  const { return width_; }
+    inline Length  lb_width()               const { return lb_width_; }
+
     inline bool is_complete() const { return item_number() == instance_.item_number(); }
 
-    inline SolutionFeatures get_features()    const {
-        return {
-            diff_percentage_means: diff_percentage_means(),
-            percentage_items: percentage_items(),
-            waste_percentage: (float) waste_percentage()
-        };
-    }
-
-    Length diff_width() const {
-        Length res = 0;
-        for ( SolutionItem i: items() ) {
-            Item item = instance_.item(i.j);
-            res += item.length()-item.width();
-        }
-        return res;
-    }
-
     bool check_symetries(Depth df, Info& info) const;
-    bool check_intersection_defects(Info& info) const;
     std::vector<EnhancedSolutionNode> enhanced_nodes(Info& info) const;
-    void export_csv(Info& info) const; // writes the solution in a CSV
+    bool check_intersection_defects(Info& info, const std::vector<EnhancedSolutionNode>& nodes) const;
+    static void export_csv(Info& info, const std::vector<EnhancedSolutionNode>& nodes);
 
-    SolutionNodeId add_item(const Insertion& ins, Info& info);
+    SolutionNodeId add_item(const Insertion& ins, Info& info, bool break_symetries = true);
 
-    void update(const Solution& sol, Info& info, Cpt& solution_number, std::string algorithm="");
+    void update(const Solution& sol, Info& info, const std::stringstream& algorithm);
 
     std::string to_string(SolutionNodeId node_id, std::string str="") const;
     std::string branchingviz_string() const;
@@ -229,7 +213,7 @@ public:
     inline Length y2_prev() const { return (prev_cut(2).node == -1)? 0: node(prev_cut(2).node).p; }
     inline Length x3_curr() const { return (curr_cut(3).node == -1)? x1_prev(): node(curr_cut(3).node).p; }
     inline Length x3_prev() const { return (prev_cut(3).node == -1)? x1_prev(): node(prev_cut(3).node).p; }
-    inline Front front() const { return {.p = plate_number()-1, .x1_prev = x1_prev(), .x3_curr = x3_curr(), .x1_curr = x1_curr(), .y2_prev = y2_prev(), .y2_curr = y2_curr(), .z1 = z1(), .z2 = z2()}; }
+    inline Front front() const { return {.p = static_cast<PlateId>(plate_number()-1), .x1_prev = x1_prev(), .x3_curr = x3_curr(), .x1_curr = x1_curr(), .y2_prev = y2_prev(), .y2_curr = y2_curr(), .z1 = z1(), .z2 = z2()}; }
 
     inline Length x1_max() const { return x1_max_; }
     inline Length y2_max() const { return y2_max_; }
@@ -239,11 +223,13 @@ public:
     std::vector<ItemId> pos_stack() const { return pos_stack_; }
     ItemId pos_stack(StackId s) const { return pos_stack_[s]; }
 
-    int pos_artificial_stack_1, pos_artificial_stack_2;
-
     static bool dominates(Front f1, Front f2, const GlobalParam& global_param);
 
 private:
+
+    /**
+     * Attributes
+     */
 
     const Instance& instance_;
 
@@ -256,7 +242,8 @@ private:
     std::vector<ItemId> pos_stack_ = {};
 
     /**
-     * item_[j] is the position of item j in the tree.
+     * items_[j].j is the jth item of the the solution.
+     * items_[j].node is the index of its associated node of nodes_.
      */
     std::vector<SolutionItem> items_ = {};
 
@@ -265,18 +252,19 @@ private:
     Area current_area_    = 0;
     Area waste_           = 0;
     Length width_         = 0;
+    Length lb_width_      = -1;
 
     std::array<CutInfo, 4> curr_cut_ {{{.node = -1}, {.node = -1}, {.node = -1}, {.node = -1}}};
     std::array<CutInfo, 4> prev_cut_ {{{.node = -1}, {.node = -1}, {.node = -1}, {.node = -1}}};
 
     /**
-     * Max position of next 1-cut.
+     * x1_max_ is the maximum position of the current 1-cut.
      * Used when otherwise, one of its 2-cut would intersect a defect.
      */
     Length x1_max_ = -1;
 
     /**
-     * Max position of next 2-cut.
+     * y2_max_ is the maximum position of the current 2-cut.
      * Used when otherwise, one of its 3-cut would intersect a defect.
      */
     Length y2_max_ = -1;
@@ -302,10 +290,15 @@ private:
     Cpt df_min_ = -1;
 
     /**
-     * Contains the list of items (id, orientation, right) inserted above a
-     * defect in the current 2-cut.
+     * Contains the list of items (id, rotation, right cut position) inserted
+     * above a defect between the previous and the current 2-cut.
      */
-    std::vector<ItemOrientationX> yy_ = {};
+    std::vector<ItemRotateX> yy_ = {};
+
+
+    /**
+     * Private methods
+     */
 
     /**
      * all_valid_insertions
@@ -316,38 +309,49 @@ private:
      * Insertion of one item.
      */
     void insertion_1_item(std::vector<Insertion>& res,
-            ItemId j, Orientation oj, Depth df,
-            bool& placed, bool& no_cutsize_increase, Info& info) const;
+            ItemId j, bool rotate, Depth df,
+            Depth& df_min, Info& info) const;
+    /**
+     * Insertion of one item above a defect.
+     */
+    void insertion_1_item_4cut(std::vector<Insertion>& res,
+            DefectId k, ItemId j, bool rotate, Depth df,
+            Depth& df_min, Info& info) const;
     /**
      * Insertion of two items.
      */
     void insertion_2_items(std::vector<Insertion>& res,
-            ItemId j1, Orientation oj1, ItemId j2, Orientation oj2, Depth df,
-            bool& placed, bool& no_cutsize_increase, Info& info) const;
+            ItemId j1, bool rotate1, ItemId j2, bool rotate2, Depth df,
+            Depth& df_min, Info& info) const;
     /**
      * Insertion of a defect.
      */
     void insertion_defect(std::vector<Insertion>& res,
             const Defect& k, Depth df, Info& info) const;
-    /**
-     * Insertion of one item above a defect.
-     */
-    void insertion_1_item_4cut(std::vector<Insertion>& res,
-            DefectId k, ItemId j, Orientation oj, Depth df,
-            bool& placed, bool& no_cutsize_increase, Info& info) const;
 
+    /**
+     * Coordinates of the bottom left side of a new insertion at depth df.
+     */
     Coord coord(Depth df) const;
     PlateId last_plate(Depth df) const;
-    Front front(const Insertion& i) const;
     Length x1_prev(Depth df) const;
     Length y2_prev(Depth df) const;
     Length x1_max(Depth df) const;
     Length y2_max(Depth df, Length x3) const;
-
-    DefectId rect_intersects_defects(Info& info, Length l, Length r, Length b, Length t, PlateId p) const;
-
-    bool rect_intersection(Coord c1, Rectangle r1, Coord c2, Rectangle r2) const;
+    Front front(const Insertion& i) const;
     Area waste(const Insertion& i) const;
+
+    /**
+     * Intersections
+     */
+    bool rect_intersection(
+            Coord c1, Rectangle r1, Coord c2, Rectangle r2) const;
+    DefectId rect_intersects_defect(Info& info,
+            Length l, Length r, Length b, Length t, PlateId p) const;
+    DefectId x_intersects_defect(
+            Length x, PlateId plate) const;
+    DefectId y_intersects_defect(
+            Length l, Length r, Length y, PlateId plate) const;
 
     /**
      * Compute i.x1 and i.z1 depending on x3 and x1_curr().
@@ -375,18 +379,11 @@ private:
     bool compute_height(Info& info, Insertion& i) const;
 
     /**
-     * When closing a 2-cut, we need to compute x1_max depending on defect
-     * intersections.
-     * When closing a 3-cut, we need to compute y2_max depending on defect
-     * intersections.
-     */
-    DefectId x_intersects_defect(Length x, PlateId plate) const;
-    DefectId y_intersects_defect(Length l, Length r, Length y, PlateId plate) const;
-
-    /**
      * export
      */
-    SolutionNodeId add_nodes(std::vector<EnhancedSolutionNode>& res, Cpt j_pos, SolutionNodeId id) const;
+    SolutionNodeId add_nodes(
+            std::vector<EnhancedSolutionNode>& res,
+            Cpt j_pos, SolutionNodeId id) const;
 
 };
 
@@ -397,6 +394,7 @@ Solution algorithm_end(const Solution& sol, Info& info);
 struct SolutionCompare
 {
     SolutionCompare(int comparator_id): id(comparator_id) {  }
+    double value(const Solution& s);
     bool operator()(const Solution& s1, const Solution& s2);
     int id;
 };

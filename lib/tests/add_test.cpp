@@ -35,8 +35,7 @@ TEST(Solution, AddItem1)
         {.id = 1, .rect = {300, 400}, .stack = 1, .sequence = 1}};
     std::vector<Defect> vd;
     GlobalParam p = GlobalParam::roadef2018();
-    Logger logger;
-    Info info(logger);
+    Info info;
     Instance ins(vi, vd, p);
 
     Solution sol(ins);
@@ -154,8 +153,7 @@ TEST(Solution, AddItem2)
         {.id = 2, .rect = {100, 400}, .stack = 2, .sequence = 1}};
     std::vector<Defect> vd;
     GlobalParam p = GlobalParam::roadef2018();
-    Logger logger;
-    Info info(logger);
+    Info info;
     Instance ins(vi, vd, p);
     Solution sol(ins);
 

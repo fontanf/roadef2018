@@ -1,5 +1,5 @@
 cc_library(
-        name = "libdfs",
+        name = "dfs",
         hdrs = ["dfs.hpp"],
         srcs = ["dfs.cpp"],
         deps = ["//lib:cpp"],

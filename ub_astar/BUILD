@@ -1,5 +1,5 @@
 cc_library(
-        name = "libastar",
+        name = "astar",
         hdrs = ["astar.hpp"],
         srcs = ["astar.cpp"],
         deps = ["//lib:cpp"],

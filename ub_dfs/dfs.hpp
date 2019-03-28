@@ -3,12 +3,17 @@
 #include "roadef2018/lib/instance.hpp"
 #include "roadef2018/lib/solution.hpp"
 
-#include <chrono>
-
 namespace roadef2018
 {
 
-Solution ub_dfs(const Instance& ins, Info& info);
+struct DFSData
+{
+    const Instance& ins;
+    Solution& sol_best;
+    Info info = Info();
+};
+
+void sol_dfs(DFSData d);
 
 }
 

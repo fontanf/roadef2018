@@ -6,200 +6,198 @@
 
 using namespace roadef2018;
 
-#ifdef TOTO
-
-TEST(Solution, Waste_1)
+TEST(Solution, Waste1)
 {
     /*
-       Waste at the end of the first 1cut = 5x5 = 25
-       +-------------------------------------------+
-       |                                           |
-       |  waste here                               |
-       |  ^                                        |
-       +--+----+                                   |
-       |       |                                   |
-       |       |                                   |
-       |  5x5  |                                   |
-       |       |                                   |
-       |       +----+                              |
-       |       |    |                              |
-       |       |3x3 |                              |
-       +------------+------------------------------+
-    */
+     * |-------------------------------------------|
+     * |                                           |
+     * |                                           |
+     * |                                           |
+     * |-------|                                   |
+     * | 50x50 |                                   |
+     * |       |----|                              |
+     * |       | 30 |                              |
+     * |       |x30 |                              |
+     * +-------|----|------------------------------|
+     */
 
-    Logger logger;
-    Info info(logger);
-    GlobalParam p {
-        .nbplates  = 100,
-        .platesize = {.w = 50, .h = 10},
-        .min1cut   = 1,
-        .max1cut   = 50,
-        .min2cut   = 1,
-        .minwaste  = 5,
-    };
-    std::vector<Defect> vd;
-
-    std::vector<Item> vi {
-        {.id = 0, .rect = {5, 5}, .stack = 0, .sequence = 0},
-        {.id = 1, .rect = {3, 3}, .stack = 0, .sequence = 1},
-    };
-    Instance ins(vi, vd, p);
-    Solution sol(ins);
-
-    sol.add_item({.j = 0, .xj = 0, .yj = 0, .oj = InLength, .f = 0, .df = -1, .dc = 1, .xk = 5, .yk = 5, .x1 = 0, .y2 = 0, .j2 = -1}, info);
-    sol.add_item({.j = 1, .xj = 5, .yj = 0, .oj = InLength, .f = 1, .df = 0, .dc = 1, .xk = 8, .yk = 3, .x1 = 0, .y2 = 0, .j2 = -1}, info);
-
-
-    EXPECT_EQ(sol.waste(), 46);
-}
-
-TEST(Solution, Waste_2a)
-{
-    /*
-       waste at the end of the second 2cut, waste = 2x3 = 6
-       +------------------------------------------------+
-       |                                                |
-       |                                                |
-       +--------+                                       |
-       |     5x1|                                       |
-       |        |                                       |
-       +-----+--+                                       |
-       |     |                                          |
-       |  3x3| < waste here                             |
-       |     |                                          |
-       +-----+--+                                       |
-       |        |                                       |
-       |        |                                       |
-       |    5x5 |                                       |
-       |        |                                       |
-       +--------+---------------------------------------+
-
-    */
-
-    Logger logger;
-    Info info(logger);
+    Info info;
     GlobalParam p = GlobalParam::roadef2018();
     std::vector<Defect> vd;
 
     std::vector<Item> vi {
-        {.id = 0, .rect = {500, 500}, .stack = 0, .sequence = 0},
-        {.id = 1, .rect = {300, 300}, .stack = 0, .sequence = 1},
-        {.id = 2, .rect = {100, 500}, .stack = 0, .sequence = 2},
-        {.id = 3, .rect = {100, 500}, .stack = 0, .sequence = 3},
+        {.id = 0, .rect = {50, 50}, .stack = 0, .sequence = 1},
+        {.id = 1, .rect = {30, 30}, .stack = 0, .sequence = 2},
+        {.id = 2, .rect = {40, 40}, .stack = 0, .sequence = 3},
     };
     Instance ins(vi, vd, p);
     Solution sol(ins);
 
-    sol.add_item({.j = 0, .xj = 0, .yj = 0, .oj = InLength, .f = 0, .df = -1, .dc = 2, .xk = 500, .yk = 500, .x1 = 0, .y2 = 0, .j2 = -1}, info);
-    sol.add_item({.j = 1, .xj = 0, .yj = 500, .oj = InLength, .f = 2, .df = 1, .dc = 2, .xk = 300, .yk = 800, .x1 = 0, .y2 = 0, .j2 = -1}, info);
-    sol.add_item({.j = 2, .xj = 0, .yj = 800, .oj = InLength, .f = 2, .df = 1, .dc = 2, .xk = 500, .yk = 900, .x1 = 0, .y2 = 0, .j2 = -1}, info);
+    Insertion i0 {.j1 = 0, .j2 = -1, .df = -1,
+            .x1 = 50, .y2 = 50, .x3 = 50,
+            .x1_max = 3500, .y2_max = 3210,
+            .z1 = 0, .z2 = 0};
+    std::vector<Insertion> is0 = sol.all_valid_insertions(info);
+    EXPECT_NE(std::find(is0.begin(), is0.end(), i0), is0.end());
+    sol.add_item(i0, info);
+    EXPECT_EQ(sol.waste(), 0);
+    EXPECT_EQ(sol.width(), 50);
 
+    Insertion i1 {.j1 = 1, .j2 = -1, .df =  2,
+            .x1 = 80, .y2 = 50, .x3 = 80,
+            .x1_max = 3500, .y2_max = 3210,
+            .z1 = 0, .z2 = 0};
+    std::vector<Insertion> is1 = sol.all_valid_insertions(info);
+    sol.add_item(i1, info);
+    EXPECT_EQ(sol.waste(), 20*30);
+    EXPECT_EQ(sol.width(), 80);
+}
+
+TEST(Solution, Waste2)
+{
+    /*
+     * +------------------------------------------------+
+     * |                                                |
+     * |                                                |
+     * +--------+                                       |
+     * |  500   |                                       |
+     * | x100   |                                       |
+     * +-----+--+                                       |
+     * |     |                                          |
+     * | 300 |                                          |
+     * |x300 |                                          |
+     * +-----+--+                                       |
+     * |        |                                       |
+     * |   500  |                                       |
+     * |  x500  |                                       |
+     * |        |                                       |
+     * +--------+---------------------------------------+
+     *
+     */
+
+    Info info;
+    GlobalParam p = GlobalParam::roadef2018();
+    std::vector<Defect> vd;
+
+    std::vector<Item> vi {
+        {.id = 0, .rect = {500, 500}, .stack = 0, .sequence = 1},
+        {.id = 1, .rect = {300, 300}, .stack = 0, .sequence = 2},
+        {.id = 2, .rect = {100, 500}, .stack = 0, .sequence = 3},
+        {.id = 3, .rect = {100, 500}, .stack = 0, .sequence = 4},
+    };
+    Instance ins(vi, vd, p);
+    Solution sol(ins);
+
+    Insertion i0 {.j1 = 0, .j2 = -1, .df = -1,
+            .x1 = 500, .y2 = 500, .x3 = 500,
+            .x1_max = 3500, .y2_max = 3210,
+            .z1 = 0, .z2 = 0};
+    std::vector<Insertion> is0 = sol.all_valid_insertions(info);
+    EXPECT_NE(std::find(is0.begin(), is0.end(), i0), is0.end());
+    sol.add_item(i0, info);
+    EXPECT_EQ(sol.waste(), 0);
+    EXPECT_EQ(sol.width(), 500);
+
+    Insertion i1 {.j1 = 1, .j2 = -1, .df = 1,
+            .x1 = 500, .y2 = 800, .x3 = 300,
+            .x1_max = 3500, .y2_max = 3210,
+            .z1 = 0, .z2 = 0};
+    std::vector<Insertion> is1 = sol.all_valid_insertions(info);
+    sol.add_item(i1, info);
+    EXPECT_EQ(sol.waste(), 0);
+    EXPECT_EQ(sol.width(), 500);
+
+    Insertion i2 = {.j1 = 2, .j2 = -1, .df = 1,
+        .x1 = 500, .y2 = 900, .x3 = 500,
+        .x1_max = 3500, .y2_max = 3210,
+        .z1 = 0, .z2 = 0};
+    std::vector<Insertion> is2 = sol.all_valid_insertions(info);
+    EXPECT_NE(std::find(is2.begin(), is2.end(), i2), is2.end());
+    sol.add_item(i2, info);
     EXPECT_EQ(sol.waste(), 300*200);
 }
 
-TEST(Solution, Waste_2b)
+TEST(Solution, Waste3)
 {
     /*
-       waste at the end of the second 2 cut and at the end of the first 2cut = 2x3 + 1x5 = 11
-       waste = 5*6 + 3*8 + 1*5 = 30 + 24 + 5 = 59
-       +------------------------------------------------+
-       |                                                |
-       |                                                |
-       +---------+                                      |
-       |     6x1 |                                      |
-       |         |                                      |
-       +-----+---+                                      |
-       |     |                                          |
-       |  3x3| < waste here                             |
-       |     |                                          |
-       +-----+--+                                       |
-       |        |                                       |
-       |        +> waste here                           |
-       |    5x5 |                                       |
-       |        |                                       |
-       +--------+---------------------------------------+
+     * +-----------------------------------------------------------+
+     * |                                                           |
+     * |                                                           |
+     * |                                                           |
+     * |                                                           |
+     * |                                                           |
+     * |                                                           |
+     * |                                                           |
+     * |                                                           |
+     * |                                                           |
+     * |                                                           |
+     * +-----------------+                                         |
+     * |       1x6       |                                         |
+     * +-----------------+                                         |
+     * |     |     |     |                                         |
+     * |     +-----+     |                                         |
+     * |     |     |     |                                         |
+     * | 2x5 |     | 2x5 |                                         |
+     * |     | 2x4 |     |                                         |
+     * |     |     |     |                                         |
+     * +-----+-----+-----+-----------------------------------------+
+     */
 
-          0
-          |
-          1
-          |
-          2
-        / | \
-       3  4  5
-
-    */
-
-    Logger logger;
-    Info info(logger);
+    Info info;
     GlobalParam p = GlobalParam::roadef2018();
     std::vector<Defect> vd;
 
     std::vector<Item> vi {
-        {.id = 0, .rect = {500, 500}, .stack = 0, .sequence = 0},
-        {.id = 1, .rect = {300, 300}, .stack = 0, .sequence = 1},
-        {.id = 2, .rect = {600, 100}, .stack = 0, .sequence = 2},
-        {.id = 3, .rect = {600, 100}, .stack = 0, .sequence = 3},
-    };
-    Instance ins(vi, vd, p);
-    Solution sol(ins);
-
-    sol.add_item({.j = 0, .xj = 0, .yj = 0, .oj = InLength, .f = 0, .df = -1, .dc = 2, .xk = 500, .yk = 500, .x1 = 0, .y2 = 0, .j2 = -1}, info);
-    sol.add_item({.j = 1, .xj = 0, .yj = 500, .oj = InLength, .f = 2, .df = 1, .dc = 2, .xk = 300, .yk = 800, .x1 = 0, .y2 = 0, .j2 = -1}, info);
-    EXPECT_EQ(sol.waste(), 300*200);
-    sol.add_item({.j = 2, .xj = 0, .yj = 800, .oj = InLength, .f = 2, .df = 1, .dc = 2, .xk = 600, .yk = 900, .x1 = 0, .y2 = 0, .j2 = -1}, info);
-    EXPECT_EQ(sol.waste(), 500*100 + 300*300);
-}
-
-TEST(Solution, Waste_3)
-{
-    /*
-       waste at the end of the second 3cut (waste: 2x1 = 2)
-       +-----------------------------------------------------------+
-       |                                                           |
-       |                                                           |
-       |                                                           |
-       |                                                           |
-       |                                                           |
-       |                                                           |
-       |                                                           |
-       |                                                           |
-       |                                                           |
-       |                                                           |
-       +-----------------+                                         |
-       +-------1x6-------+                                         |
-       |     |   ^ waste here                                      |
-       |     +---+-+     |                                         |
-       |     |     |     |                                         |
-       | 2x5 |     |     |                                         |
-       |     | 2x4 | 2x5 |                                         |
-       |     |     |     |                                         |
-       +-----+-----+-----+-----------------------------------------+
-    */
-
-    Logger logger;
-    Info info(logger);
-    GlobalParam p = GlobalParam::roadef2018();
-    std::vector<Defect> vd;
-
-    std::vector<Item> vi {
-        {.id = 0, .rect = {200, 500}, .stack = 0, .sequence = 0},
+        {.id = 0, .rect = {200, 500}, .stack = 0, .sequence = 1},
         {.id = 1, .rect = {200, 400}, .stack = 0, .sequence = 1},
         {.id = 2, .rect = {200, 500}, .stack = 0, .sequence = 2},
         {.id = 3, .rect = {600, 100}, .stack = 0, .sequence = 3},
-        {.id = 4, .rect = {600, 100}, .stack = 0, .sequence = 4},
+        {.id = 4, .rect = {600, 100}, .stack = 0, .sequence = 5},
     };
     Instance ins(vi, vd, p);
     Solution sol(ins);
 
-    sol.add_item({.j = 0, .xj = 0, .yj = 0, .oj = InLength, .f = 0, .df = -1, .dc = 3, .xk = 200, .yk = 500, .x1 = 0, .y2 = 0, .j2 = -1}, info);
-    sol.add_item({.j = 1, .xj = 200, .yj = 0, .oj = InLength, .f = 3, .df = 1, .dc = 3, .xk = 400, .yk = 400, .x1 = 0, .y2 = 0, .j2 = -1}, info);
-    sol.add_item({.j = 2, .xj = 400, .yj = 0, .oj = InLength, .f = 3, .df = 1, .dc = 3, .xk = 600, .yk = 500, .x1 = 0, .y2 = 0, .j2 = -1}, info);
-    sol.add_item({.j = 3, .xj = 0, .yj = 500, .oj = InLength, .f = 2, .df = 1, .dc = 2, .xk = 600, .yk = 600, .x1 = 0, .y2 = 0, .j2 = -1}, info);
+    Insertion i0 {.j1 = 0, .j2 = -1, .df = -1,
+            .x1 = 200, .y2 = 500, .x3 = 200,
+            .x1_max = 3500, .y2_max = 3210,
+            .z1 = 0, .z2 = 0};
+    std::vector<Insertion> is0 = sol.all_valid_insertions(info);
+    EXPECT_NE(std::find(is0.begin(), is0.end(), i0), is0.end());
+    sol.add_item(i0, info);
+    EXPECT_EQ(sol.waste(), 0);
+    EXPECT_EQ(sol.width(), 200);
 
+    Insertion i1 {.j1 = 1, .j2 = -1, .df = 2,
+            .x1 = 400, .y2 = 500, .x3 = 400,
+            .x1_max = 3500, .y2_max = 3210,
+            .z1 = 0, .z2 = 0};
+    std::vector<Insertion> is1 = sol.all_valid_insertions(info);
+    sol.add_item(i1, info);
     EXPECT_EQ(sol.waste(), 20000);
+    EXPECT_EQ(sol.width(), 400);
+
+    Insertion i2 = {.j1 = 2, .j2 = -1, .df = 2,
+        .x1 = 600, .y2 = 500, .x3 = 600,
+        .x1_max = 3500, .y2_max = 3210,
+        .z1 = 0, .z2 = 0};
+    std::vector<Insertion> is2 = sol.all_valid_insertions(info);
+    EXPECT_NE(std::find(is2.begin(), is2.end(), i2), is2.end());
+    sol.add_item(i2, info);
+    EXPECT_EQ(sol.waste(), 20000);
+    EXPECT_EQ(sol.width(), 600);
+
+    Insertion i3 = {.j1 = 3, .j2 = -1, .df = 1,
+        .x1 = 600, .y2 = 600, .x3 = 600,
+        .x1_max = 3500, .y2_max = 3210,
+        .z1 = 0, .z2 = 0};
+    std::vector<Insertion> is3 = sol.all_valid_insertions(info);
+    EXPECT_NE(std::find(is3.begin(), is3.end(), i3), is3.end());
+    sol.add_item(i3, info);
+    EXPECT_EQ(sol.waste(), 20000);
+    EXPECT_EQ(sol.width(), 600);
 }
 
-TEST(Solution, Waste_A1_positive)
+TEST(Solution, WasteA1)
 {
     /* test A1 with two objects (waste positive)
 
@@ -215,128 +213,104 @@ TEST(Solution, Waste_A1_positive)
 
     */
 
-    Logger logger;
-    Info info(logger);
-    Instance inst = Instance("data/dataset_A/A1_batch.csv", "data/dataset_A/A1_defects.csv", "data/global_param.csv");
-    Solution sol(inst);
+    Info info;
+    Instance ins = Instance("instances/A1_batch.csv", "instances/A1_defects.csv", "instances/global_param.csv");
+    Solution sol(ins);
 
-    sol.add_item({.j = 0, .xj = 0, .yj = 0, .oj = InLength, .f = 0, .df = -1, .dc = 1, .xk = 758, .yk = 1578, .x1 = 0, .y2 = 0, .j2 = -1}, info);
-    sol.add_item({.j = 1, .xj = 758, .yj = 0, .oj = InLength, .f = 1, .df = 0, .dc = 3, .xk = 2308, .yk = 738, .x1 = 0, .y2 = 0, .j2 = -1}, info);
-    LOG(info, sol << std::endl);
+    Insertion i0 {.j1 = 0, .j2 = -1, .df = -1,
+            .x1 = 758, .y2 = 1578, .x3 = 758,
+            .x1_max = 3500, .y2_max = 3210,
+            .z1 = 0, .z2 = 0};
+    std::vector<Insertion> is0 = sol.all_valid_insertions(info);
+    EXPECT_NE(std::find(is0.begin(), is0.end(), i0), is0.end());
+    sol.add_item(i0, info);
+    EXPECT_EQ(sol.waste(), 0);
+    EXPECT_EQ(sol.width(), 758);
 
+    Insertion i1 {.j1 = 1, .j2 = -1, .df = 0,
+            .x1 = 2308, .y2 = 738, .x3 = 2308,
+            .x1_max = 4258, .y2_max = 3210,
+            .z1 = 0, .z2 = 0};
+    std::vector<Insertion> is1 = sol.all_valid_insertions(info);
+    sol.add_item(i1, info);
     EXPECT_EQ(sol.waste(), 758*(3210-1578));
+    EXPECT_EQ(sol.width(), 2308);
 }
 
-TEST(Solution, IntegrationA1_1_test)
+TEST(Solution, WasteIntegrationA1)
 {
     /**
-     * integration A1 (first item)
-     *
-     *
-     +------+-------+----------------------------+
-     |      |       |                            |
-     |      |       |                            |
-     |      |   4   |                            |
-     |   1  |       |                            |
-     |      +-------++                           |
-     |      |        |                           |
-     +------+        |                           |
-     |      |        |                           |
-     |      |    3   |                           |
-     |      |        |                           |
-     |  0   |        |                           |
-     |      +------+-+                           |
-     |      |   2  |                             |
-     +-------------+-----------------------------+
-     *
-     *
+     * +------+-------+----------------------------+
+     * |      |       |                            |
+     * |      |       |                            |
+     * |      |   4   |                            |
+     * |   1  |       |                            |
+     * |      +-------++                           |
+     * |      |        |                           |
+     * +------+        |                           |
+     * |      |        |                           |
+     * |      |    3   |                           |
+     * |      |        |                           |
+     * |  0   |        |                           |
+     * |      +------+-+                           |
+     * |      |   2  |                             |
+     * +-------------+-----------------------------+
      */
 
-    Logger logger;
-    Info info(logger);
-    Instance inst = Instance("data/dataset_A/A1_batch.csv", "data/dataset_A/A1_defects.csv", "data/global_param.csv");
-    EXPECT_EQ(inst.item_number(), 5);
-    Solution sol = Solution(inst);
-    LOG(info, sol << std::endl);
-    // for (const Insertion& i: sol.all_valid_insertions(info)) {
-    //     std::cerr << i << std::endl; // logger do not print in logs for some reason, so i use here std::cerr
-    // }
-    // ##################### ITEM 0
-    bool found = false;
-    LOG(info, "searching optimal position of item 0 ... ");
-    for (const Insertion& i: sol.all_valid_insertions(info)) {
-        if ( i.xj == 0 && i.yj == 0 && i.dc == 2 && i.xk == 758 && i.yk == 1578 ) {
-            found = true;
-            sol.add_item(i,info);
-            break;
-        }
-    }
-    EXPECT_EQ(found,true);
-    LOG(info, "OK\n");
+    Info info;
+    Instance ins = Instance("instances/A1_batch.csv", "instances/A1_defects.csv", "instances/global_param.csv");
+    EXPECT_EQ(ins.item_number(), 5);
+    Solution sol = Solution(ins);
 
-    // ##################### ITEM 1
-    found = false;
-    LOG(info, "searching optimal position of item 1 ... ");
-    for (const Insertion& i: sol.all_valid_insertions(info)) {
-        if ( i.xj == 0 && i.yj == 1578 && i.dc == 2 && i.xk == 738 && i.yk == 3128 ) {
-            found = true;
-            sol.add_item(i,info);
-            break;
-        }
-    }
-    EXPECT_EQ(found,true);
-    LOG(info, "OK\n");
-    LOG(info, "checking waste lower bound ... ");
-    EXPECT_EQ(sol.waste(), 20*1550);
+    Insertion i0 {.j1 = 0, .j2 = -1, .df = -1,
+            .x1 = 758, .y2 = 1578, .x3 = 758,
+            .x1_max = 3500, .y2_max = 3210,
+            .z1 = 0, .z2 = 0};
+    std::vector<Insertion> is0 = sol.all_valid_insertions(info);
+    EXPECT_NE(std::find(is0.begin(), is0.end(), i0), is0.end());
+    sol.add_item(i0, info);
+    EXPECT_EQ(sol.waste(), 0);
+    EXPECT_EQ(sol.width(), 758);
 
-    // ##################### ITEM 2
-    found = false;
-    LOG(info, "searching optimal position of item 2 ... ");
-    for (const Insertion& i: sol.all_valid_insertions(info)) {
-        if (i.xj == 758 && i.yj == 0 && i.dc == 2 && i.xk == 758+581 && i.yk == 276) {
-            found = true;
-            sol.add_item(i,info);
-            break;
-        }
-    }
-    EXPECT_EQ(found, true);
-    LOG(info, "OK\n");
-    LOG(info, "checking waste lower bound ... ");
+    Insertion i1 {.j1 = 1, .j2 = -1, .df = 1,
+            .x1 = 758, .y2 = 3128, .x3 = 738,
+            .x1_max = 3500, .y2_max = 3210,
+            .z1 = 0, .z2 = 0};
+    std::vector<Insertion> is1 = sol.all_valid_insertions(info);
+    sol.add_item(i1, info);
+    EXPECT_EQ(sol.waste(), 0);
+    EXPECT_EQ(sol.width(), 758);
+
+    Insertion i2 = {.j1 = 2, .j2 = -1, .df = 0,
+        .x1 = 1339, .y2 = 276, .x3 = 1339,
+        .x1_max = 4258, .y2_max = 3210,
+        .z1 = 0, .z2 = 0};
+    std::vector<Insertion> is2 = sol.all_valid_insertions(info);
+    EXPECT_NE(std::find(is2.begin(), is2.end(), i2), is2.end());
+    sol.add_item(i2, info);
     EXPECT_EQ(sol.waste(), 20*1550+(3210-3128)*758);
+    EXPECT_EQ(sol.width(), 1339);
 
-    // ##################### ITEM 3
-    found = false;
-    LOG(info, "searching optimal position of item 3 ... ");
-    for (const Insertion& i: sol.all_valid_insertions(info)) {
-        if (i.xj == 758 && i.yj == 276 && i.dc == 2 && i.xk == 758+781 && i.yk == 276+1396 ) {
-            found = true;
-            sol.add_item(i,info);
-            break;
-        }
-    }
-    EXPECT_EQ(found,true);
-    LOG(info, "OK\n");
-    LOG(info, "checking waste lower bound ... ");
+    Insertion i3 = {.j1 = 3, .j2 = -1, .df = 1,
+        .x1 = 1539, .y2 = 1672, .x3 = 1539,
+        .x1_max = 4258, .y2_max = 3210,
+        .z1 = 0, .z2 = 0};
+    std::vector<Insertion> is3 = sol.all_valid_insertions(info);
+    EXPECT_NE(std::find(is3.begin(), is3.end(), i3), is3.end());
+    sol.add_item(i3, info);
     EXPECT_EQ(sol.waste(), 20*1550+(3210-3128)*758+(781-581)*276);
+    EXPECT_EQ(sol.width(), 1539);
 
-    // ##################### ITEM 4
-    found = false;
-    LOG(info, "searching optimal position of item 4 ... ");
-    for (const Insertion& i: sol.all_valid_insertions(info)) {
-        if (i.xj == 758 && i.yj == 1672 && i.dc == 2 && i.xk == 758+648 && i.yk == 1672+1426) {
-            found = true;
-            sol.add_item(i,info);
-            break;
-        }
-    }
-    EXPECT_EQ(found,true);
-    LOG(info, "OK\n");
-
-    LOG(info, "checking metrics of solution ... ");
+    Insertion i4 = {.j1 = 4, .j2 = -1, .df = 1,
+        .x1 = 1539, .y2 = 3098, .x3 = 1406,
+        .x1_max = 4258, .y2_max = 3210,
+        .z1 = 0, .z2 = 0};
+    std::vector<Insertion> is4 = sol.all_valid_insertions(info);
+    EXPECT_NE(std::find(is4.begin(), is4.end(), i4), is4.end());
+    sol.add_item(i4, info);
+    EXPECT_EQ(sol.width(), 1539);
     EXPECT_EQ(sol.waste(), 425486);
-    EXPECT_EQ(sol.lb_area(), 1539);
-    LOG(info, "OK\n");
-
+    EXPECT_EQ(sol.lb_width(), 1539);
 }
 
 TEST(Solution, WasteSolutionEnd)
@@ -367,8 +341,7 @@ TEST(Solution, WasteSolutionEnd)
      *
      */
 
-    Logger logger;
-    Info info(logger);
+    Info info;
     GlobalParam p = GlobalParam::roadef2018();
     std::vector<Defect> vd;
 
@@ -378,10 +351,22 @@ TEST(Solution, WasteSolutionEnd)
     };
     Instance ins(vi, vd, p);
     Solution sol(ins);
-    sol.add_item({.j = 0, .xj = 0, .yj = 0, .oj = InLength, .f = 0, .df = -1, .dc = 2, .xk = 2000, .yk = 1500, .x1 = 0, .y2 = 0, .j2 = -1}, info);
-    sol.add_item({.j = 1, .xj = 0, .yj = 1500, .oj = InLength, .f = 2, .df = 1, .dc = 2, .xk = 1995, .yk = 3210, .x1 = -2020, .y2 = 0, .j2 = -1}, info);
+
+    Insertion i0 {.j1 = 0, .j2 = -1, .df = -1,
+            .x1 = 2000, .y2 = 1500, .x3 = 2000,
+            .x1_max = 3500, .y2_max = 3210,
+            .z1 = 0, .z2 = 0};
+    std::vector<Insertion> is0 = sol.all_valid_insertions(info);
+    EXPECT_NE(std::find(is0.begin(), is0.end(), i0), is0.end());
+    sol.add_item(i0, info);
+
+    Insertion i1 {.j1 = 1, .j2 = -1, .df = 1,
+            .x1 = 2020, .y2 = 3210, .x3 = 1995,
+            .x1_max = 3500, .y2_max = 3210,
+            .z1 = 1, .z2 = 0};
+    std::vector<Insertion> is1 = sol.all_valid_insertions(info);
+    sol.add_item(i1, info);
     EXPECT_EQ(sol.waste(), 20*1500 + 25*1710);
     EXPECT_EQ(sol.width(), 2020);
 }
 
-#endif

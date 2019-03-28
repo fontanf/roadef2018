@@ -5,57 +5,74 @@ using namespace roadef2018;
 void roadef2018::sol_beamsearch(BeamSearchData d)
 {
     Cpt node_number = 0;
-    std::chrono::high_resolution_clock::time_point t1 = d.info.t1;
+    SolutionCompare comp(d.criterion_id);
 
-    for (Cpt B=2; B<100000; B*=d.growing_factor) { // for each Beam size
-        std::multiset<Solution, SolutionCompare> nodes(SolutionCompare(d.criterion_id));
-        nodes.insert(Solution(d.ins));
-        while (nodes.size() > 0) { // for each level of the tree
-            // if time over
-            std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
-            std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
-            if (time_span.count() > d.time_limit) {
-                LOG(d.info, LOG_FOLD_END << std::endl);
+    for (Cpt q_sizemax=2; ; q_sizemax*=d.growth_factor) { // for each Beam size
+        if (q_sizemax == (Cpt)(q_sizemax*d.growth_factor))
+            q_sizemax++;
+
+        std::multiset<Solution, SolutionCompare> q(SolutionCompare(d.criterion_id));
+        std::multiset<Solution, SolutionCompare> children_2(SolutionCompare(d.criterion_id));
+        q.insert(Solution(d.ins));
+
+        bool end = true;
+        while (!q.empty()) {
+
+            if (!d.info.check_time()) {
+                LOG_FOLD_END(d.info, "");
                 break;
             }
 
-            // compute list of child nodes
+            // Compute list of child nodes
             std::multiset<Solution, SolutionCompare> children(SolutionCompare(d.criterion_id));
-            for (const Solution& s: nodes) {
-                for (const Insertion& i: s.all_valid_insertions(d.info, d.break_symetries)) {
+            children.swap(children_2);
+            while (!q.empty()) {
+                Solution s(*q.begin());
+                q.erase(q.begin());
+                for (const Insertion& i: s.all_valid_insertions(d.info, true)) {
                     Solution sol_tmp(s);
                     sol_tmp.add_item(i, d.info);
                     node_number++;
-                    if (d.best_solution.is_complete() && sol_tmp.waste() >= d.best_solution.waste()) {
+
+                    if (d.sol_best.is_complete() && sol_tmp.waste() >= d.sol_best.waste()) {
                         LOG(d.info, " waste cut ×" << std::endl);
                         continue;
                     }
-                    if (sol_tmp.is_complete() && (!d.best_solution.is_complete() || sol_tmp.waste() < d.best_solution.waste())) {
-                        omp_set_lock(&d.writelock);
-                        if (!d.best_solution.is_complete() || sol_tmp.waste() < d.best_solution.waste()) {
-                            if (!sol_tmp.check_intersection_defects(d.info) ) {
-                                std::cout << "ERROR SOLUTION FOUND\n";
-                                d.best_solution.update(sol_tmp, d.info, d.sol_number, "BeamSearchi " + std::to_string(B));
-                                exit(1);
-                            }
-                            d.best_solution.update(sol_tmp, d.info, d.sol_number, "BeamSearchi " + std::to_string(B));
+
+                    if (sol_tmp.is_complete()) {
+                        if (!d.sol_best.is_complete() || sol_tmp.waste() < d.sol_best.waste()) {
+                            std::stringstream ss;
+                            ss << "BS " << d.criterion_id << " " << d.growth_factor << " " << q_sizemax;
+                            d.sol_best.update(sol_tmp, d.info, ss);
                         }
-                        omp_unset_lock(&d.writelock);
                     } else if (!sol_tmp.is_complete()) {
-                        children.insert(sol_tmp);
-                        while ((Cpt)children.size() > B) { // if children too big, remove one element
-                            children.erase(std::prev(children.end()));
+                        if (i.j1 == -1 && i.j2 == -1) {
+                            if (!q.empty() && comp(sol_tmp, *std::prev(q.end()))) {
+                                q.insert(sol_tmp);
+                                end = false;
+                                q.erase(std::prev(q.end()));
+                            }
+                        } else if (i.j1 != -1 && i.j2 != -1) {
+                            children_2.insert(sol_tmp);
+                            if ((Cpt)children_2.size() > q_sizemax) { // if children too big, remove one element
+                                end = false;
+                                children_2.erase(std::prev(children_2.end()));
+                            }
+                        } else {
+                            children.insert(sol_tmp);
+                            if ((Cpt)children.size() > q_sizemax) { // if children too big, remove one element
+                                end = false;
+                                children.erase(std::prev(children.end()));
+                            }
                         }
                     }
+
                 }
             }
-
-            // if children size is bigger than B, discard elements
-            // while ((Cpt)children.size() > B)
-            //     children.erase(std::prev(children.end()));
-
-            nodes.swap(children);
+            q.swap(children);
         }
+        if (end)
+            break;
     }
 }
 

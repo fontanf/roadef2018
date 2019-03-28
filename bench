@@ -1,18 +1,20 @@
 #!/bin/bash
 
-#bazel build --cxxopt='-std=c++14' --compilation_mode=opt -- //lib:main
-#exe="./bazel-bin/lib/main"
+bazel build --cxxopt='-std=c++14' --compilation_mode=opt -- //lib:main
+exe="./bazel-bin/lib/main"
 
-exe="./challengeSG"
-t=$1;
+t=3600;
+A="A1 A2 A3 A4 A5 A6 A7 A8 A9 A10 A11 A12 A13 A14 A15 A16 A17 A18 A19 A20"
+B="B1 B2 B3 B4 B5 B6 B7 B8 B9 B10 B11 B12 B13 B14 B15"
+X="X1 X2 X3 X4 X5 X6 X7 X8 X9 X10 X11 X12 X13 X14 X15"
 
-for i in {1..20}; do
-    echo "A${i}"
-    "${exe}" -t "${t}" -p "instances/A${i}" -o "solutions_${t}/A${i}_solution.csv"
-done
-
-for i in {1..15}; do
-    echo "B${i}"
-    "${exe}" -t "${t}" -p "instances/B${i}" -o "solutions_${t}/B${i}_solution.csv"
+for i in $A $B $X; do
+    echo "${i}"
+    "${exe}" \
+        -v \
+        -t "${t}" \
+        -p "instances/${i}" \
+        -o "solutions_${t}/${i}_solution.csv" \
+        -i "solutions_${t}/${i}_output.ini"
 done
 

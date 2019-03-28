@@ -1,14 +1,11 @@
-/**
- * Contains instance data structures and functions to parse instances.
- */
-
 #pragma once
 
-#include "info.hpp"
+#include "benchtools/info.hpp"
 
 #include <string>
 #include <vector>
 #include <exception>
+#include <thread>
 
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
@@ -18,22 +15,18 @@
 namespace roadef2018
 {
 
-typedef int_fast64_t ItemId;
-typedef int_fast64_t ItemPos;
-typedef int_fast64_t Length;
-typedef int_fast64_t Area;
-typedef int_fast64_t StackId;
-typedef int_fast64_t Sequence;
-typedef int_fast64_t DefectId;
-typedef int_fast64_t PlateId;
-typedef int_fast64_t NbPlates;
-typedef int_fast64_t NodeId;
-typedef int_fast64_t NodeType;
-typedef int_fast64_t Cpt;
-typedef int_fast64_t PositionInStack;
-typedef int_fast64_t Seed;
+typedef int16_t ItemId;
+typedef int16_t ItemPos;
+typedef int64_t Length;
+typedef int64_t Area;
+typedef int16_t StackId;
+typedef int16_t SeqId;
+typedef int16_t DefectId;
+typedef int16_t PlateId;
+typedef int64_t Cpt;
+typedef int64_t Seed;
 
-enum Orientation { InLength, InHeight };
+class Solution;
 
 struct Coord
 {
@@ -48,10 +41,7 @@ struct Rectangle
     Length w;
     Length h;
 
-    void rotate() { std::swap(w, h); }
-    Rectangle rotate() const { return {h, w}; }
     Area area() const { return w*h; }
-    bool in_length() const { return w >= h; }
 };
 
 std::ostream& operator<<(std::ostream &os, Rectangle r);
@@ -63,27 +53,13 @@ struct Item
     ItemId id;
     Rectangle rect;
     StackId stack;
-    Sequence sequence;
+    SeqId sequence;
 
-    Length length() const { return std::max(rect.w, rect.h); }
-    Length width()  const { return std::min(rect.w, rect.h); }
-
-    Length width(Orientation o) const
-    {
-        return (o == InLength)?
-            std::max(rect.w, rect.h):
-            std::min(rect.w, rect.h);
-    }
-
-    Length height(Orientation o) const
-    {
-        return (o == InLength)?
-            std::min(rect.w, rect.h):
-            std::max(rect.w, rect.h);
-    }
-
-    std::string to_string() const;
+    Length width (bool rotate) const { return (!rotate)? rect.w: rect.h; }
+    Length height(bool rotate) const { return (!rotate)? rect.h: rect.w; }
 };
+
+std::ostream& operator<<(std::ostream &os, const Item& it);
 
 /******************************************************************************/
 
@@ -98,15 +74,15 @@ struct Defect
     Length right()  const { return pos.x + rect.w; }
     Length top()    const { return pos.y + rect.h; }
     Length bottom() const { return pos.y; }
-
-    std::string to_string() const;
 };
+
+std::ostream& operator<<(std::ostream &os, const Defect& d);
 
 /******************************************************************************/
 
 struct GlobalParam
 {
-    NbPlates nbplates;
+    PlateId nbplates;
     Rectangle platesize;
     Length min1cut;
     Length max1cut;
@@ -123,35 +99,20 @@ struct GlobalParam
             .min2cut = 100,
             .minwaste = 20};
     }
-
-    std::string to_string() const;
 };
 
-
-class FileNotFoundException: public std::exception
-{
-  virtual const char* what() const throw()
-  {
-    return "File not found exception";
-  }
-};
+std::ostream& operator<<(std::ostream &os, const GlobalParam& global_param);
 
 
 /******************************************************************************/
 
-/**
- * Instance class
- *
- * Constructor is given file names (items file, defects file and global data file). 
- * It parses the files and creates vectors of Items and Defects and fills a Global Param object.
- */
 class Instance 
 {
 
 public:
 
     /**
-     * Create instances from files.
+     * Create instances from files
      */
     Instance(
             std::string batch_filename,
@@ -159,7 +120,7 @@ public:
             std::string global_param_filename);
 
     /**
-     * Create instance manually.
+     * Create instance manually
      */
     Instance(
             const std::vector<Item>& items,
@@ -167,36 +128,40 @@ public:
             const GlobalParam& global_param);
 
     /**
-     * Copy constructor.
+     * Copy constructor
      */
     Instance(const Instance& ins);
+
+    Instance(const Solution& sol, std::vector<ItemId>& id);
+    void exchange(ItemId j1, ItemId j2, std::vector<ItemId>& id);
 
     /**
      * Getters
      */
 
-    inline const GlobalParam& global_param() const { return global_param_; };
+    inline const GlobalParam& global_param() const { return global_param_; }
 
-    inline ItemId             item_number()  const { return items_.size(); }
-    inline Area               item_surface() const { return item_surface_; }
-    inline Area               mean_area()    const { return item_surface_ / item_number(); }
-    inline const Item&        item(ItemId j) const { return items_[j]; }
+    inline ItemId   item_number()         const { return items_.size(); }
+    inline StackId  stack_number()        const { return batches_.size(); }
+    inline ItemId   stack_size(StackId s) const { return batches_[s].size(); }
+    inline DefectId defect_number()       const { return defects_.size(); }
 
-    inline StackId            stack_number()               const { return batches_.size(); }
-    inline ItemId             stack_size(StackId s)        const { return batches_[s].size(); }
-    inline const Item&        item(StackId s, ItemPos pos) const { return batches_[s][pos]; }
+    inline Area item_area() const { return item_area_; }
+    inline Area mean_area() const { return item_area_ / item_number(); }
 
-    inline DefectId           defect_number()    const { return defects_.size(); }
-    inline const Defect&      defect(DefectId k) const { return defects_[k]; }
+    inline const Item&   item(ItemId j)               const { return items_[j]; }
+    inline const Item&   item(StackId s, ItemPos pos) const { return batches_[s][pos]; }
+    inline const Defect& defect(DefectId k)           const { return defects_[k]; }
 
-    inline const std::vector<Item>&   stack(StackId s)    const { return batches_[s]; }
-    inline const std::vector<Defect>& defects(PlateId id) const { return plate_defects_[id]; }
-
-    inline const std::vector<Defect>& all_defects() const { return defects_; }
+    inline const std::vector<Item>&              items()             const { return items_; }
+    inline const std::vector<Item>&              stack(StackId s)    const { return batches_[s]; }
+    inline const std::vector<std::vector<Item>>& stacks()            const { return batches_; }
+    inline const std::vector<Defect>&            defects()           const { return defects_; }
+    inline const std::vector<Defect>&            defects(PlateId id) const { return plate_defects_[id]; }
 
     StackId stack_pred(StackId s) const { return stack_pred_[s]; }
 
-    std::string to_string() const;
+    Cpt state_number() const;
 
 private:
 
@@ -207,10 +172,10 @@ private:
     std::vector<std::vector<Defect>> plate_defects_;
     std::vector<std::vector<Item>>   batches_;
 
-    Area item_surface_;
+    Area item_area_;
 
 
-    void compute_item_surface();
+    void compute_item_area();
 
     /**
      * If stacks s1 < s2 < s3 contain identical items in the same order, then
@@ -226,6 +191,8 @@ private:
     void fill_stack_pred();
 
 };
+
+std::ostream& operator<<(std::ostream &os, const Instance& ins);
 
 }
 

@@ -4,8 +4,6 @@
 #include "roadef2018/lib/solution.hpp"
 
 #include <vector>
-#include <chrono>
-#include <omp.h>
 
 namespace roadef2018
 {
@@ -13,14 +11,10 @@ namespace roadef2018
 struct BeamSearchData
 {
     const Instance& ins;
-    Info& info;
-    double time_limit;
-    bool break_symetries;
+    double growth_factor;
     int criterion_id;
-    float growing_factor;
-    Solution& best_solution;
-    Cpt& sol_number;
-    omp_lock_t& writelock;
+    Solution& sol_best;
+    Info info = Info();
 };
 
 void sol_beamsearch(BeamSearchData d);

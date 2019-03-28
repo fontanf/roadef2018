@@ -25,8 +25,7 @@ TEST(Solution, InsertionDFm1I)
      *                   1000                           6000
      */
 
-    Logger logger;
-    Info info(logger);
+    Info info;
     GlobalParam p = GlobalParam::roadef2018();
     std::vector<Defect> vd;
 
@@ -46,8 +45,7 @@ TEST(Solution, InsertionDFm1I)
 
 TEST(Solution, InsertionDfm1II)
 {
-    Logger logger;
-    Info info(logger);
+    Info info;
     GlobalParam p = GlobalParam::roadef2018();
     std::vector<Defect> vd;
 
@@ -93,8 +91,7 @@ TEST(Solution, InsertionDf0)
      *        1000               2500                 6000
      */
 
-    Logger logger;
-    Info info(logger);
+    Info info;
     GlobalParam p = GlobalParam::roadef2018();
     std::vector<Defect> vd;
 
@@ -142,8 +139,7 @@ TEST(Solution, InsertionDf1I)
      *
      */
 
-    Logger logger;
-    Info info(logger);
+    Info info;
     GlobalParam p = GlobalParam::roadef2018();
     std::vector<Defect> vd;
 
@@ -193,8 +189,7 @@ TEST(Solution, InsertionDf1II)
      *        1000                      3990 4000       6000
      */
 
-    Logger logger;
-    Info info(logger);
+    Info info;
     GlobalParam p = GlobalParam::roadef2018();
     std::vector<Defect> vd;
 
@@ -244,8 +239,7 @@ TEST(Solution, InsertionDf1III)
      *
      */
 
-    Logger logger;
-    Info info(logger);
+    Info info;
     GlobalParam p = GlobalParam::roadef2018();
     std::vector<Defect> vd;
     std::vector<Item> vi {
@@ -295,8 +289,7 @@ TEST(Solution, InsertionDf1IV)
      *
      */
 
-    Logger logger;
-    Info info(logger);
+    Info info;
     GlobalParam p = GlobalParam::roadef2018();
     std::vector<Defect> vd;
     std::vector<Item> vi {
@@ -347,8 +340,7 @@ TEST(Solution, InsertionDf1V)
      *
      */
 
-    Logger logger;
-    Info info(logger);
+    Info info;
     GlobalParam p = GlobalParam::roadef2018();
     std::vector<Defect> vd;
     std::vector<Item> vi {
@@ -402,8 +394,7 @@ TEST(Solution, InsertionDf1MinWasteI)
      *          1000    2000 2010      3010
      */
 
-    Logger logger;
-    Info info(logger);
+    Info info;
     GlobalParam p = GlobalParam::roadef2018();
     std::vector<Defect> vd;
 
@@ -459,8 +450,7 @@ TEST(Solution, InsertionDf1MinWasteII)
      *                  2000 2005 2010
      */
 
-    Logger logger;
-    Info info(logger);
+    Info info;
     GlobalParam p = GlobalParam::roadef2018();
     std::vector<Defect> vd;
 
@@ -510,8 +500,7 @@ TEST(Solution, InsertionDf2I)
      *        1000 1500  2200    3000                  6000
      */
 
-    Logger logger;
-    Info info(logger);
+    Info info;
     GlobalParam p = GlobalParam::roadef2018();
     std::vector<Defect> vd;
 
@@ -565,8 +554,7 @@ TEST(Solution, InsertionDf2II)
      *        1000 1500  2200    3000                  6000
      */
 
-    Logger logger;
-    Info info(logger);
+    Info info;
     GlobalParam p = GlobalParam::roadef2018();
     std::vector<Defect> vd;
 
@@ -620,8 +608,7 @@ TEST(Solution, InsertionDf2III)
      *        1000 1500  2200    3000                  6000
      */
 
-    Logger logger;
-    Info info(logger);
+    Info info;
     GlobalParam p = GlobalParam::roadef2018();
     std::vector<Defect> vd;
 
@@ -675,8 +662,7 @@ TEST(Solution, InsertionDf2IV)
      *        1000      2000     3000                  6000
      */
 
-    Logger logger;
-    Info info(logger);
+    Info info;
     GlobalParam p = GlobalParam::roadef2018();
     std::vector<Defect> vd;
 
@@ -711,6 +697,54 @@ TEST(Solution, InsertionDf2IV)
     EXPECT_EQ(sol.all_valid_insertions(info), is);
 }
 
+TEST(Solution, InsertionDf2V)
+{
+    /**
+     *
+     * |-------------------------------------------------|
+     * |   |----|                                        | 3000
+     * |---|    |                                        | 2500
+     * |   |    |                                        |
+     * | 1 |  2 |                                        |
+     * |   |    |                                        |
+     * |---|----|                                        | 1500
+     * |        |                                        |
+     * |        |                                        |
+     * |    0   |                                        |
+     * |        |                                        |
+     * |--------|----------------------------------------| 0
+     *    500 1000
+     */
+
+    Info info;
+    GlobalParam p = GlobalParam::roadef2018();
+    std::vector<Defect> vd;
+
+    std::vector<Item> vi {
+        {.id = 0, .rect = {1000, 1500}, .stack = 0, .sequence = 1},
+        {.id = 1, .rect = {500, 1000}, .stack = 0, .sequence = 2},
+        {.id = 2, .rect = {500, 1500}, .stack = 0, .sequence = 3},
+    };
+    Instance ins(vi, vd, p);
+    Solution sol(ins);
+
+    Insertion i0 = {.j1 = 0, .j2 = -1, .df = -1, .x1 = 1000, .y2 = 1500, .x3 = 1000, .x1_max = 3500, .y2_max = 3210, .z1 = 0, .z2 = 0};
+    std::vector<Insertion> is0 = sol.all_valid_insertions(info);
+    EXPECT_NE(std::find(is0.begin(), is0.end(), i0), is0.end());
+    sol.add_item(i0, info);
+
+    Insertion i1 = {.j1 = 1, .j2 = -1, .df = 1, .x1 = 1000, .y2 = 2500, .x3 = 500, .x1_max = 3500, .y2_max = 3210, .z1 = 0, .z2 = 0};
+    std::vector<Insertion> is1 = sol.all_valid_insertions(info);
+    EXPECT_NE(std::find(is1.begin(), is1.end(), i1), is1.end());
+    sol.add_item(i1, info);
+
+    std::vector<Insertion> is {
+        {.j1 = 2, .j2 = -1, .df = 2, .x1 = 2000, .y2 = 2500, .x3 = 2000, .x1_max = 3500, .y2_max = 3210, .z1 = 0, .z2 = 0},
+        {.j1 = 2, .j2 = -1, .df = 2, .x1 = 1000, .y2 = 3000, .x3 = 1000, .x1_max = 3500, .y2_max = 3210, .z1 = 0, .z2 = 0},
+    };
+    EXPECT_EQ(sol.all_valid_insertions(info), is);
+}
+
 TEST(Solution, InsertionX1)
 {
     /**
@@ -738,8 +772,7 @@ TEST(Solution, InsertionX1)
      *
      */
 
-    Logger logger;
-    Info info(logger);
+    Info info;
     GlobalParam p = GlobalParam::roadef2018();
     std::vector<Defect> vd;
 
@@ -775,8 +808,7 @@ TEST(Solution, InsertionX2)
      * Test from a bugged solution of instanace A5.
      */
 
-    Logger logger;
-    Info info(logger);
+    Info info;
     GlobalParam p = GlobalParam::roadef2018();
     std::vector<Defect> vd;
 
@@ -842,8 +874,7 @@ TEST(Solution, InsertionX3)
      *                                                5970
      */
 
-    Logger logger;
-    Info info(logger);
+    Info info;
     GlobalParam p = GlobalParam::roadef2018();
     std::vector<Defect> vd;
 
@@ -898,8 +929,7 @@ TEST(Solution, InsertionY1)
      *
      */
 
-    Logger logger;
-    Info info(logger);
+    Info info;
     GlobalParam p = GlobalParam::roadef2018();
     std::vector<Defect> vd;
 
@@ -948,8 +978,7 @@ TEST(Solution, InsertionY2)
      *
      */
 
-    Logger logger;
-    Info info(logger);
+    Info info;
     GlobalParam p = GlobalParam::roadef2018();
     std::vector<Defect> vd;
 
@@ -996,8 +1025,7 @@ TEST(Solution, Insertion4CutDfm1)
      *
      */
 
-    Logger logger;
-    Info info(logger);
+    Info info;
     GlobalParam p = GlobalParam::roadef2018();
     std::vector<Defect> vd;
 
@@ -1051,8 +1079,7 @@ TEST(Solution, Insertion4CutDf0)
      *
      */
 
-    Logger logger;
-    Info info(logger);
+    Info info;
     GlobalParam p = GlobalParam::roadef2018();
     std::vector<Defect> vd;
 
@@ -1111,8 +1138,7 @@ TEST(Solution, Insertion4CutDf1)
      *       1000     2000     3000
      */
 
-    Logger logger;
-    Info info(logger);
+    Info info;
     GlobalParam p = GlobalParam::roadef2018();
     std::vector<Defect> vd;
 
@@ -1179,8 +1205,7 @@ TEST(Solution, Insertion4CutDf2)
      *
      */
 
-    Logger logger;
-    Info info(logger);
+    Info info;
     GlobalParam p = GlobalParam::roadef2018();
     std::vector<Defect> vd;
 
