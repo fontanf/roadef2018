@@ -1,3 +1,4 @@
+load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository", "new_git_repository")
 new_git_repository(
     name = "googletest",
     build_file_content = """
@@ -22,7 +23,6 @@ cc_library(
     tag = "release-1.8.0",
 )
 
-load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 git_repository(
     name = "benchtools",
     remote = "https://github.com/fontanf/benchtools.git",
