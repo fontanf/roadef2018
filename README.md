@@ -70,13 +70,13 @@ Please do not hesitate to contact us:
 ## Compile
 
 ```
-bazel build --cxxopt='-std=c++14' --compilation_mode=opt -- //lib:main
+bazel build -- //lib:main
 ```
 
 ## Execute
 
 ```
-./bazel-bin/lib/main -t 3600 -p instances/A15 -o solutions_3600/A15_solution.csv
+./bazel-bin/lib/main -v -t 3600 -p instances/A15 -o solutions_3600/A15_solution.csv
 ```
 
 ## Benchmarks
@@ -88,6 +88,6 @@ bazel build --cxxopt='-std=c++14' --compilation_mode=opt -- //lib:main
 ## Unit tests
 
 ```
-bazel test --cxxopt='-std=c++14' --compilation_mode=dbg -- //lib:test
+bazel test --compilation_mode=dbg -- //lib:test
 ```
 

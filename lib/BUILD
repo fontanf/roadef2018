@@ -29,6 +29,7 @@ cc_binary(
                 "//ub_beamstacksearch:beamstacksearch",
                 "//ub_mbastar:mbastar",
         ],
+        data = ["//instances:instances"],
 )
 
 cc_binary(
