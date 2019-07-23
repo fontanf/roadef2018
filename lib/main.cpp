@@ -165,14 +165,15 @@ int main(int argc, char *argv[])
 
     Instance ins(instance_path + "_batch.csv", instance_path + "_defects.csv", globalparam_path);
 
-    Info info = Info(log_path)
-        .set_timelimit(time_limit)
+    Info info = Info()
         .set_verbose(vm.count("-v"))
-        .set_outputfile(output_path)
+        .set_timelimit(time_limit)
         .set_certfile(certificate_path)
+        .set_outputfile(output_path)
         .set_onlywriteattheend(false)
-        .set_loglevelmax(log_levelmax)
+        .set_logfile(log_path)
         .set_log2stderr(vm.count("-w"))
+        .set_loglevelmax(log_levelmax)
         ;
     boost::filesystem::path p(certificate_path);
     if (p.parent_path() != "")

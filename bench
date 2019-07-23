@@ -1,6 +1,6 @@
 #!/bin/bash
 
-bazel build --cxxopt='-std=c++14' --compilation_mode=opt -- //lib:main
+bazel build -- //lib:main
 exe="./bazel-bin/lib/main"
 
 t=3600;
