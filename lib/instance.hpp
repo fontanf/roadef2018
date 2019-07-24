@@ -7,9 +7,6 @@
 #include <exception>
 #include <thread>
 
-#include <boost/filesystem/operations.hpp>
-#include <boost/filesystem/path.hpp>
-#include <boost/filesystem/fstream.hpp>
 #include <boost/program_options.hpp>
 
 namespace roadef2018

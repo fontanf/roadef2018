@@ -175,9 +175,6 @@ int main(int argc, char *argv[])
         .set_log2stderr(vm.count("-w"))
         .set_loglevelmax(log_levelmax)
         ;
-    boost::filesystem::path p(certificate_path);
-    if (p.parent_path() != "")
-        boost::filesystem::create_directories(p.parent_path());
 
     Solution sol(ins);
 

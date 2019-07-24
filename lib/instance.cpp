@@ -5,7 +5,6 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
-#include <boost/algorithm/string.hpp>
 
 using namespace roadef2018;
 
@@ -63,64 +62,64 @@ std::ostream& roadef2018::operator<<(std::ostream &os, const GlobalParam& global
 
 /******************************************************************************/
 
+std::vector<std::string> split(std::string line)
+{
+    std::vector<std::string> v;
+    std::stringstream ss(line);
+    std::string tmp;
+    while (getline(ss, tmp, ';'))
+        v.push_back(tmp);
+    return v;
+}
+
 Instance::Instance(
         std::string batch_filename,
         std::string defects_filename,
         std::string global_param_filename)
 {
-    // read batch file
-    std::ifstream f_batch {batch_filename};
     std::string tmp;
     std::vector<std::string> line;
+
+    // read batch file
+    std::ifstream f_batch(batch_filename);
     getline(f_batch, tmp);
-    while (f_batch.good()) {
-        getline(f_batch,tmp);
-        boost::split(line, tmp, [](char c) {return c == ';';});
-        if (line.size() == 5) {
-            Item item = {
-                .id       = (ItemId)std::stoi(line[0]),
-                .rect     = {.w = std::stoi(line[1]), .h = std::stoi(line[2])},
-                .stack    = (StackId)std::stoi(line[3]),
-                .sequence = (SeqId)std::stoi(line[4])};
-            this->items_.push_back(item);
-            if (item.stack >= (StackId)batches_.size()) { // if item is in a new batch
-                batches_.push_back(std::vector<Item>());
-            }
-            batches_[item.stack].push_back(item); // add this item to its batch
-        }
+    while (getline(f_batch, tmp)) {
+        line = split(tmp);
+        Item item = {
+            .id       = (ItemId)std::stol(line[0]),
+            .rect     = {.w = std::stol(line[1]), .h = std::stol(line[2])},
+            .stack    = (StackId)std::stol(line[3]),
+            .sequence = (SeqId)std::stol(line[4])};
+        items_.push_back(item);
+        if (item.stack >= (StackId)batches_.size()) // if item is in a new batch
+            batches_.push_back(std::vector<Item>());
+        batches_[item.stack].push_back(item); // add this item to its batch
     }
 
     // read defects file
     plate_defects_.resize(100, std::vector<Defect>());
-    std::ifstream f_defects {defects_filename};
-
+    std::ifstream f_defects(defects_filename);
     getline(f_defects, tmp);
-    while (f_defects.good()) {
-        getline(f_defects, tmp);
-        boost::split(line, tmp, [](char c) {return c == ';';});
-        if (line.size() == 6) {
-            Coord     coord  {.x  = std::stoi(line[2]), .y        = std::stoi(line[3])};
-            Rectangle rect   {.w  = std::stoi(line[4]), .h        = std::stoi(line[5])};
-            Defect    defect {.id = (DefectId)std::stoi(line[0]), .plate_id = (PlateId)std::stoi(line[1]),
-                             .pos = coord, .rect = rect};
-            this->defects_.push_back(defect);
-            plate_defects_[std::stoi(line[1])].push_back(defect);
-        }
+    while (getline(f_defects, tmp)) {
+        line = split(tmp);
+        Coord     coord  {.x  = std::stol(line[2]), .y = std::stol(line[3])};
+        Rectangle rect   {.w  = std::stol(line[4]), .h = std::stol(line[5])};
+        Defect    defect {.id = (DefectId)std::stol(line[0]), .plate_id = (PlateId)std::stol(line[1]), .pos = coord, .rect = rect};
+        defects_.push_back(defect);
+        plate_defects_[std::stol(line[1])].push_back(defect);
     }
 
     // read global parameters file
     std::vector<Length> data;
-    std::ifstream f_global {global_param_filename};
-
+    std::ifstream f_global(global_param_filename);
     getline(f_global, tmp);
-    for (int i = 0; i < 7; i++) {
+    for (int i=0; i<7; ++i) {
         getline(f_global, tmp);
-        boost::split(line, tmp, [](char c) {return c == ';';});
-        data.push_back(std::stoi(line[1]));
+        line = split(tmp);
+        data.push_back(std::stol(line[1]));
     }
-
     Rectangle rect{data.at(1), data.at(2)};
-    this->global_param_ = {
+    global_param_ = {
         .nbplates  = (PlateId)data.at(0),
         .platesize = rect,
         .min1cut   = data.at(3),

@@ -7,9 +7,3 @@ cc_library(
         include_prefix = "roadef2018/ub_beamsearch/",
 )
 
-cc_binary(
-        name = "main",
-        srcs = ["main.cpp"],
-        deps = [":beamsearch"],
-)
-

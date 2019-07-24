@@ -11,7 +11,6 @@ cc_library(
         deps = ["@benchtools//:info"],
         linkopts = [
                 "-pthread",
-                "-lboost_filesystem",
                 "-lboost_program_options",
         ],
         visibility = ["//visibility:public"],
