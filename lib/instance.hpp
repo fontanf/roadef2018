@@ -7,8 +7,6 @@
 #include <exception>
 #include <thread>
 
-#include <boost/program_options.hpp>
-
 namespace roadef2018
 {
 
@@ -79,12 +77,12 @@ std::ostream& operator<<(std::ostream &os, const Defect& d);
 
 struct GlobalParam
 {
-    PlateId nbplates;
-    Rectangle platesize;
-    Length min1cut;
-    Length max1cut;
-    Length min2cut;
-    Length minwaste;
+    PlateId nbplates = 100;
+    Rectangle platesize = {6000, 3210};
+    Length min1cut = 100;
+    Length max1cut = 3500;
+    Length min2cut = 100;
+    Length minwaste = 20;
 
     static GlobalParam roadef2018()
     {

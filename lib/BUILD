@@ -9,10 +9,6 @@ cc_library(
                 "solution.cpp",
         ],
         deps = ["@benchtools//:info"],
-        linkopts = [
-                "-pthread",
-                "-lboost_program_options",
-        ],
         visibility = ["//visibility:public"],
         include_prefix = "roadef2018/lib/",
 )
@@ -27,6 +23,10 @@ cc_binary(
                 "//ub_beamsearch:beamsearch",
                 "//ub_beamstacksearch:beamstacksearch",
                 "//ub_mbastar:mbastar",
+        ],
+        linkopts = [
+                "-pthread",
+                "-lboost_program_options",
         ],
         data = ["//instances:instances"],
 )

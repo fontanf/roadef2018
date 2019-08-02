@@ -5,6 +5,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <climits>
 
 using namespace roadef2018;
 
@@ -77,11 +78,41 @@ Instance::Instance(
         std::string defects_filename,
         std::string global_param_filename)
 {
+    std::ifstream f_batch(batch_filename);
+    std::ifstream f_defects(defects_filename);
+    std::ifstream f_global(global_param_filename);
+    if (!f_batch.good())
+        std::cerr << "\033[31m" << "ERROR, unable to open file \"" << batch_filename << "\"" << "\033[0m" << std::endl;
+    if (!f_defects.good())
+        std::cerr << "\033[31m" << "ERROR, unable to open file \"" << defects_filename << "\"" << "\033[0m" << std::endl;
+    if (!f_global.good())
+        std::cerr << "\033[31m" << "ERROR, unable to open file \"" << global_param_filename << "\"" << "\033[0m" << std::endl;
+    if (!f_batch.good() || !f_defects.good() || !f_global.good()) {
+        plate_defects_.resize(global_param().nbplates, std::vector<Defect>());
+        return;
+    }
+
     std::string tmp;
     std::vector<std::string> line;
 
+    // read global parameters file
+    std::vector<Length> data;
+    getline(f_global, tmp);
+    for (int i=0; i<7; ++i) {
+        getline(f_global, tmp);
+        line = split(tmp);
+        data.push_back(std::stol(line[1]));
+    }
+    Rectangle rect{data.at(1), data.at(2)};
+    global_param_ = {
+        .nbplates  = (PlateId)data.at(0),
+        .platesize = rect,
+        .min1cut   = data.at(3),
+        .max1cut   = data.at(4),
+        .min2cut   = data.at(5),
+        .minwaste  = data.at(6)};
+
     // read batch file
-    std::ifstream f_batch(batch_filename);
     getline(f_batch, tmp);
     while (getline(f_batch, tmp)) {
         line = split(tmp);
@@ -97,8 +128,7 @@ Instance::Instance(
     }
 
     // read defects file
-    plate_defects_.resize(100, std::vector<Defect>());
-    std::ifstream f_defects(defects_filename);
+    plate_defects_.resize(global_param().nbplates, std::vector<Defect>());
     getline(f_defects, tmp);
     while (getline(f_defects, tmp)) {
         line = split(tmp);
@@ -108,24 +138,6 @@ Instance::Instance(
         defects_.push_back(defect);
         plate_defects_[std::stol(line[1])].push_back(defect);
     }
-
-    // read global parameters file
-    std::vector<Length> data;
-    std::ifstream f_global(global_param_filename);
-    getline(f_global, tmp);
-    for (int i=0; i<7; ++i) {
-        getline(f_global, tmp);
-        line = split(tmp);
-        data.push_back(std::stol(line[1]));
-    }
-    Rectangle rect{data.at(1), data.at(2)};
-    global_param_ = {
-        .nbplates  = (PlateId)data.at(0),
-        .platesize = rect,
-        .min1cut   = data.at(3),
-        .max1cut   = data.at(4),
-        .min2cut   = data.at(5),
-        .minwaste  = data.at(6)};
 
     fill_stack_pred();
     compute_item_area();

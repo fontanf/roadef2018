@@ -1871,10 +1871,16 @@ bool Solution::check_intersection_defects(Info& info,
     return true;
 }
 
-void Solution::export_csv(Info& info,
-        const std::vector<EnhancedSolutionNode>& nodes)
+void Solution::export_csv(Info& info, const std::vector<EnhancedSolutionNode>& nodes)
 {
+    if (info.output->certfile.empty())
+        return;
     std::ofstream f{info.output->certfile};
+    if (!f.good()) {
+        std::cerr << "\033[31m" << "ERROR, unable to open file \"" << info.output->certfile << "\"" << "\033[0m" << std::endl;
+        return;
+    }
+
     f << "PLATE_ID;NODE_ID;X;Y;WIDTH;HEIGHT;TYPE;CUT;PARENT\n";
     for (const EnhancedSolutionNode& n: nodes) {
         f

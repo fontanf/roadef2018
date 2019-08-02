@@ -5,6 +5,8 @@
 #include "roadef2018/ub_beamstacksearch/beamstacksearch.hpp"
 #include "roadef2018/ub_mbastar/mbastar.hpp"
 
+#include <boost/program_options.hpp>
+
 #include <iomanip>
 
 using namespace roadef2018;
