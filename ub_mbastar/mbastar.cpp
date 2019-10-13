@@ -1,9 +1,6 @@
 #include "roadef2018/ub_mbastar/mbastar.hpp"
 
 #include <set>
-#include <random>
-#include <algorithm>
-#include <vector>
 
 using namespace roadef2018;
 
@@ -65,13 +62,13 @@ void roadef2018::sol_mbastar(MBAStarData d)
         LOG_FOLD_END(d.info, "");
         std::stringstream ss;
         ss << "MBA* " << d.criterion_id << " " << d.growth_factor;
-        PUT(d.info, boost::property_tree::ptree::path_type(ss.str() + "/QueueMaxSize", '/'), q_sizemax);
+        PUT(d.info, ss.str(), "QueueMaxSize", q_sizemax);
     }
 mbastarend:
 
     std::stringstream ss;
     ss << "MBA* " << d.criterion_id << " " << d.growth_factor;
-    PUT(d.info, boost::property_tree::ptree::path_type(ss.str() + "/Nodes", '/'), node_number);
+    PUT(d.info, ss.str(), "Nodes", node_number);
     LOG_FOLD_END(d.info, "");
 }
 

@@ -243,8 +243,8 @@ std::ostream& roadef2018::operator<<(std::ostream &os, const Solution& solution)
 Solution roadef2018::algorithm_end(const Solution& sol, Info& info)
 {
     double t = info.elapsed_time();
-    PUT(info, "Solution.Waste", sol.waste());
-    PUT(info, "Solution.Time", t);
+    PUT(info, "Solution", "Waste", sol.waste());
+    PUT(info, "Solution", "Time", t);
     VER(info, "---" << std::endl
             << "Waste: " << sol.waste() << std::endl
             << "Waste (%): " << sol.waste_percentage()*100 << std::endl
@@ -269,9 +269,9 @@ void Solution::update(const Solution& sol, Info& info, const std::stringstream& 
         *this = sol;
         double t = info.elapsed_time();
         std::string sol_str = "Solution" + std::to_string(info.output->sol_number);
-        PUT(info, sol_str + ".Waste", sol.waste());
-        PUT(info, sol_str + ".Time", t);
-        PUT(info, sol_str + ".Algorithm", algorithm.str());
+        PUT(info, sol_str, "Waste", sol.waste());
+        PUT(info, sol_str, "Time", t);
+        PUT(info, sol_str, "Algorithm", algorithm.str());
 
         VER(info, std::left << std::setw(6) << info.output->sol_number);
         VER(info, std::left << std::setw(22) << algorithm.str());

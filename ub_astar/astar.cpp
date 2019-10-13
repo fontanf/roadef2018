@@ -1,9 +1,5 @@
 #include "roadef2018/ub_astar/astar.hpp"
 
-#include <set>
-#include <random>
-#include <algorithm>
-#include <vector>
 #include <queue>
 
 using namespace roadef2018;
@@ -38,7 +34,7 @@ void roadef2018::sol_astar(AStarData d)
             LOG(d.info, "node number " << node_number << std::endl);
             LOG_FOLD_END(d.info, "");
             LOG_FOLD_END(d.info, "");
-            PUT(d.info, "A*.Nodes", node_number);
+            PUT(d.info, "A*", "Nodes", node_number);
             return;
         }
 

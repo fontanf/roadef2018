@@ -3,8 +3,6 @@
 #include "roadef2018/lib/instance.hpp"
 #include "roadef2018/lib/solution.hpp"
 
-#include <vector>
-
 namespace roadef2018
 {
 

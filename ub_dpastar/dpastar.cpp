@@ -1,10 +1,6 @@
 #include "roadef2018/ub_dpastar/dpastar.hpp"
 
 #include <set>
-#include <random>
-#include <algorithm>
-#include <vector>
-#include <queue>
 
 using namespace roadef2018;
 
@@ -71,8 +67,8 @@ void roadef2018::sol_dpastar_1(DPAStarData d)
             LOG(d.info, "node number " << node_number << std::endl);
             LOG_FOLD_END(d.info, "");
             LOG_FOLD_END(d.info, "");
-            PUT(d.info, "DPA*.Nodes", node_number);
-            PUT(d.info, "DPA*.QueueMaxSize", q_sizemax);
+            PUT(d.info, "DPA*", "Nodes", node_number);
+            PUT(d.info, "DPA*", "QueueMaxSize", q_sizemax);
             return;
         }
 
@@ -174,8 +170,8 @@ void roadef2018::sol_dpastar_2(DPAStarData d)
             LOG(d.info, "node number " << node_number << std::endl);
             LOG_FOLD_END(d.info, "");
             LOG_FOLD_END(d.info, "");
-            PUT(d.info, "DPA*.Nodes", node_number);
-            PUT(d.info, "DPA*.QueueMaxSize", q_sizemax);
+            PUT(d.info, "DPA*", "Nodes", node_number);
+            PUT(d.info, "DPA*", "QueueMaxSize", q_sizemax);
             return;
         }
 
@@ -274,8 +270,8 @@ void roadef2018::sol_dpastar(DPAStarData d)
             LOG(d.info, "node number " << node_number << std::endl);
             LOG_FOLD_END(d.info, "");
             LOG_FOLD_END(d.info, "");
-            PUT(d.info, "DPA*.Nodes", node_number);
-            PUT(d.info, "DPA*.QueueMaxSize", q_sizemax);
+            PUT(d.info, "DPA*", "Nodes", node_number);
+            PUT(d.info, "DPA*", "QueueMaxSize", q_sizemax);
             return;
         }
 

@@ -1,10 +1,8 @@
 #include "roadef2018/lib/instance.hpp"
 #include "roadef2018/lib/solution.hpp"
 
-#include <string>
 #include <iostream>
 #include <fstream>
-#include <vector>
 #include <climits>
 
 using namespace roadef2018;
@@ -164,17 +162,6 @@ Instance::Instance(
 
     compute_item_area();
     fill_stack_pred();
-}
-
-Instance::Instance(const Instance& ins)
-{
-    items_         = ins.items_;
-    defects_       = ins.defects_;
-    global_param_  = ins.global_param_;
-    plate_defects_ = ins.plate_defects_;
-    batches_       = ins.batches_;
-    item_area_     = ins.item_area_;
-    stack_pred_    = ins.stack_pred_;
 }
 
 Instance::Instance(const Solution& sol, std::vector<ItemId>& id)

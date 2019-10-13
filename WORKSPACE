@@ -23,10 +23,24 @@ cc_library(
     tag = "release-1.8.0",
 )
 
+new_git_repository(
+    name = "json",
+    build_file_content = """
+cc_library(
+        name = "json",
+        hdrs = ["single_include/nlohmann/json.hpp"],
+        visibility = ["//visibility:public"],
+        strip_include_prefix = "single_include/"
+)
+""",
+    remote = "https://github.com/nlohmann/json",
+    tag = "v3.7.0",
+)
+
 git_repository(
     name = "benchtools",
     remote = "https://github.com/fontanf/benchtools.git",
-    commit = "2bf7c91fafa0d981ed0100d4cd70e5c8594c3c70",
+    commit = "f7a92b00c89d2bca213d0a0f8303e78c2bf228ea",
 )
 
 local_repository(

@@ -3,7 +3,6 @@
 #include "roadef2018/ub_astar/astar.hpp"
 
 #include <gtest/gtest.h>
-#include <vector>
 
 using namespace roadef2018;
 

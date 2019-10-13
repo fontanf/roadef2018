@@ -1,11 +1,5 @@
 #include "roadef2018/ub_dfs/dfs.hpp"
 
-#include <set>
-#include <random>
-#include <algorithm>
-#include <vector>
-#include <queue>
-
 using namespace roadef2018;
 
 void sol_dfs_rec(DFSData& d, const Solution& sol_curr)

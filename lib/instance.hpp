@@ -2,13 +2,10 @@
 
 #include "benchtools/info.hpp"
 
-#include <string>
-#include <vector>
-#include <exception>
-#include <thread>
-
 namespace roadef2018
 {
+
+using benchtools::Info;
 
 typedef int16_t ItemId;
 typedef int16_t ItemPos;
@@ -121,11 +118,6 @@ public:
             const std::vector<Item>& items,
             const std::vector<Defect>& defects,
             const GlobalParam& global_param);
-
-    /**
-     * Copy constructor
-     */
-    Instance(const Instance& ins);
 
     Instance(const Solution& sol, std::vector<ItemId>& id);
     void exchange(ItemId j1, ItemId j2, std::vector<ItemId>& id);

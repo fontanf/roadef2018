@@ -1,5 +1,7 @@
 #include "roadef2018/ub_beamstacksearch/beamstacksearch.hpp"
 
+#include <set>
+
 using namespace roadef2018;
 
 void roadef2018::sol_beamstacksearch(BeamStackSearchData d)

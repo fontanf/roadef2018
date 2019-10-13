@@ -2,7 +2,6 @@
 #include "roadef2018/lib/solution.hpp"
 
 #include <gtest/gtest.h>
-#include <vector>
 
 using namespace roadef2018;
 

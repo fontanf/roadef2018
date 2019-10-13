@@ -149,6 +149,7 @@ public:
     Solution(const Instance& ins);
     Solution(const Solution& solution);
     Solution& operator=(const Solution& solution);
+    ~Solution() { };
     Solution& assign(const Solution& solution, const std::vector<ItemId>& id);
 
     bool operator==(const std::vector<SolutionNode>& nodes);

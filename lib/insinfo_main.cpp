@@ -3,7 +3,6 @@
 #include <boost/accumulators/statistics/variance.hpp>
 #include <iomanip>
 #include <iostream>
-#include <vector>
 #include <numeric>
 #include <math.h>
 
