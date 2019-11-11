@@ -96,19 +96,27 @@ Instance::Instance(
     // read global parameters file
     std::vector<Length> data;
     getline(f_global, tmp);
-    for (int i=0; i<7; ++i) {
-        getline(f_global, tmp);
+    while (getline(f_global, tmp)) {
         line = split(tmp);
-        data.push_back(std::stol(line[1]));
+        std::string key = line[0];
+        if (key == "nPlates") {
+            global_param_.nbplates = (PlateId)std::stol(line[1]);
+        } else if (key == "widthPlates") {
+            global_param_.platesize.w = (Length)std::stol(line[1]);
+        } else if (key == "heightPlates") {
+            global_param_.platesize.h = (Length)std::stol(line[1]);
+        } else if (key == "min1Cut") {
+            global_param_.min1cut = (Length)std::stol(line[1]);
+        } else if (key == "max1Cut") {
+            global_param_.max1cut = (Length)std::stol(line[1]);
+        } else if (key == "min2Cut") {
+            global_param_.min2cut = (Length)std::stol(line[1]);
+        } else if (key == "minWaste") {
+            global_param_.minwaste = (Length)std::stol(line[1]);
+        } else {
+            std::cerr << "\033[31m" << "ERROR, unknown global parameter \"" << key << "\"" << "\033[0m" << std::endl;
+        }
     }
-    Rectangle rect{data.at(1), data.at(2)};
-    global_param_ = {
-        .nbplates  = (PlateId)data.at(0),
-        .platesize = rect,
-        .min1cut   = data.at(3),
-        .max1cut   = data.at(4),
-        .min2cut   = data.at(5),
-        .minwaste  = data.at(6)};
 
     // read batch file
     getline(f_batch, tmp);
