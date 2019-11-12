@@ -945,7 +945,7 @@ Length Solution::y2_max(Depth df, Length x3) const
     Length y = (df == 2)? y2_max_: instance().global_param().platesize.h;
     for (const Defect& k: instance().defects(last_plate(df)))
         if (k.left() < x3 && k.right() > x3)
-            if (k.bottom() > y2_prev(df))
+            if (k.bottom() >= y2_prev(df))
                 if (y > k.bottom())
                     y = k.bottom();
     return y;

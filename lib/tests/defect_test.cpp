@@ -664,3 +664,49 @@ TEST(Solution, InsertionCutOnDefect3)
     Solution sol_2(ins);
 }
 
+TEST(Solution, Insertion4CutOnDefect4)
+{
+    /**
+     *
+     * |----------------------------------|
+     * |                                  |
+     * |                                  |
+     * |                                  |
+     * |                                  |
+     * |                                  |
+     * |                                  |
+     * |                                  |
+     * |                                  |
+     * |-------|                          | 1000
+     * |       |                          |
+     * |   0   |                          |
+     * |       |                          |
+     * |-------|                          | 500
+     * |       |                          |
+     * |       |                          |
+     * |       |                          |
+     * |-------x--------------------------|
+     *       1000
+     *
+     */
+
+    Info info = Info()
+        .set_log2stderr(true)
+        ;
+    GlobalParam p = GlobalParam::roadef2018();
+    std::vector<Defect> vd {
+        {.id = 0, .plate_id = 0, .pos = {.x = 990, .y = 0}, .rect = {.w = 20, .h = 20}}
+    };
+    std::vector<Item> vi {
+        {.id = 0, .rect = {500, 1000}, .stack = 0, .sequence = 1},
+    };
+    Instance ins(vi, vd, p);
+    Solution sol(ins);
+
+    std::vector<Insertion> is {
+        {.j1 = 0, .j2 = -1, .df = -1, .x1 = 500, .y2 = 1000, .x3 = 500, .x1_max = 3500, .y2_max = 3210, .z1 = 0, .z2 = 0},
+        {.j1 = -1, .j2 = -1, .df = -1, .x1 = 1010, .y2 = 20, .x3 = 1010, .x1_max = 3500, .y2_max = 3210, .z1 = 1, .z2 = 1},
+    };
+    EXPECT_EQ(sol.all_valid_insertions(info), is);
+}
+
