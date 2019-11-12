@@ -4,9 +4,9 @@ def Settings( **kwargs ):
                 '-x', 'c++',
                 '-Wall', '-Wextra', '-Werror',
                 '-I', '..',
-                '-I', './bazel-gap/external/json/single_include',
-                '-I', './bazel-gap/external/googletest/googletest/include/',
-                '-I', './bazel-gap/external/',
+                '-I', './bazel-roadef2018/external/json/single_include',
+                '-I', './bazel-roadef2018/external/googletest/googletest/include/',
+                '-I', './bazel-roadef2018/external/',
                 ],
             }
 
